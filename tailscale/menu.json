@@ -43,6 +43,26 @@
 			"refresh": false,
 			"status": true,
 			"internal": "status Stop_Tailscaled"
+		},
+		{
+			"name": "Install Binaries",
+			"priority": 1,
+			"action": "/mnt/us/extensions/tailscale/bin/install_tailscale.sh",
+			"exitmenu": false,
+			"checked": true,
+			"refresh": false,
+			"status": true,
+			"internal": "status Install_Binaries"
+		},
+		{
+			"name": "Update Binaries",
+			"priority": 1,
+			"action": "/mnt/us/extensions/tailscale/bin/update_tailscale.sh",
+			"exitmenu": false,
+			"checked": true,
+			"refresh": false,
+			"status": true,
+			"internal": "status Update_Binaries"
 		}
 		]
 	}
