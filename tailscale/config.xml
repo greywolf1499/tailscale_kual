@@ -2,7 +2,7 @@
 <extension>
 	<information>
 		<name>Tailscale</name>
-		<version>0.2</version>
+		<version>0.3</version>
 		<author>Mitanshu</author>
 		<id>tailscale</id>
 	</information>
