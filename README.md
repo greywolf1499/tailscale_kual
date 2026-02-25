@@ -30,7 +30,7 @@ Having tested out on this device only, [YMMV](https://dictionary.cambridge.org/d
 
 4. In the KUAL menu, tap **Install Binaries**. This will download the latest `tailscale` and `tailscaled` ARM binaries directly onto the Kindle over Wi-Fi. Alternatively, download them manually for the `arm` architecture from [here](https://pkgs.tailscale.com/stable/#static) and place them in `extensions/tailscale/bin/` yourself.
 
-5. In the KUAL menu, start `tailscaled` first, wait for about 10 seconds, then start `tailscale`.
+5. In the KUAL menu, open the **Start Tailscaled** submenu and pick the mode that suits your device (see [Tailscaled Modes](#tailscaled-modes) below). Wait about 10 seconds, then run **Start Tailscale**.
 
 6. After this, tailscale should add the kindle to your [Machines](https://login.tailscale.com/admin/machines) page on tailscale [admin console](https://login.tailscale.com/welcome).
 
@@ -41,6 +41,30 @@ Having tested out on this device only, [YMMV](https://dictionary.cambridge.org/d
 9. In case you want to restart fresh, Remove Kindle from tailscale admin console, Stop `tailscale` and `tailscaled` in KUAL, and delete the logs and new files created in `/extensions/tailscale/bin`. This will reset the state of tailscale on your kindle.
 
 10. Note: Make sure the kindle screen is on, else the kindle sleeps the wifi. You can also not connect to kindle via ssh when it is connected to PC using the cable.
+
+## Tailscaled Modes
+
+The **Start Tailscaled** entry in KUAL is now a submenu with three options. They each map to a different way of running `tailscaled`. Try them in this order if one does not work:
+
+### 1. Standard (Userspace) — default
+
+Runs `tailscaled` with `-tun userspace-networking`. This is what the extension has always done. The kindle joins your tailnet and is reachable by its Tailscale IP (good for SSH), but **outgoing connections from the kindle itself** (e.g. accessing other tailnet nodes) may not work on all devices or firmware versions.
+
+### 2. Proxy Mode (SOCKS5/HTTP)
+
+Runs `tailscaled` in userspace-networking mode but also starts a SOCKS5 and HTTP proxy listener on `localhost:1055`. Outgoing traffic from apps that respect a proxy setting is routed through Tailscale. This is the recommended option if you want to use Tailscale URLs inside **KOReader** (OPDS, the CWA plugin, etc.).
+
+After starting tailscaled in this mode and bringing tailscale up, configure KOReader's network proxy:
+
+- Open KOReader → **Settings** → **Network** → **Proxy Settings**
+- Set type to **SOCKS5** (or HTTP)
+- Host: `localhost`, Port: `1055`
+
+Once set, any request KOReader makes will go out through your tailnet.
+
+### 3. Kernel TUN (if supported)
+
+Runs `tailscaled` without the userspace-networking flag, relying on the kernel's TUN/TAP module instead. This gives full system-wide outgoing connectivity but requires the `tun` kernel module to be present and loadable. **This is not available on all Kindle firmware versions** — if it fails silently, fall back to Proxy Mode.
 
 ## Installing and Updating Tailscale Binaries
 
