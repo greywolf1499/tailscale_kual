@@ -1,7 +1,7 @@
 #!/bin/sh
 
 INSTALL_DIR=/mnt/us/extensions/tailscale/bin
-TMP_DIR=/tmp/ts_update
+TMP_DIR=/mnt/us/extensions/tailscale/tmp_update
 LOG=$INSTALL_DIR/update_log.txt
 ARCH=arm
 
