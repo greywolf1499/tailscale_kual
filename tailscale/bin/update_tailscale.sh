@@ -27,8 +27,10 @@ fi
 echo "Installed version : $CURRENT" >> "$LOG"
 
 # Resolve the latest release tag from the GitHub API
+# A User-Agent header is required - GitHub resets connections from clients that omit it.
 log "Checking latest Tailscale version..."
-LATEST=$(wget -qO- "https://api.github.com/repos/tailscale/tailscale/releases/latest" 2>>"$LOG" \
+LATEST=$(wget -qO- --user-agent="tailscale-kual-updater/1.0" \
+    "https://api.github.com/repos/tailscale/tailscale/releases/latest" 2>>"$LOG" \
     | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
 
 if [ -z "$LATEST" ]; then
