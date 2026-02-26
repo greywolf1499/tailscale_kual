@@ -1,2 +1,18 @@
 #!/bin/sh
-/mnt/us/extensions/tailscale/bin/tailscale down > tailscale_stop_log.txt 2>&1
+
+BIN=/mnt/us/extensions/tailscale/bin
+LOG=$BIN/tailscale_stop_log.txt
+
+eips_log() {
+    echo "$1" >> "$LOG"
+    eips 0 22 "$(printf '%-50s' "$1")" 2>/dev/null
+}
+
+echo "[$(date)] Stopping Tailscale..." > "$LOG"
+eips_log "Stopping Tailscale..."
+
+if "$BIN/tailscale" down >> "$LOG" 2>&1; then
+    eips_log "Tailscale stopped"
+else
+    eips_log "tailscale down failed - check log"
+fi
