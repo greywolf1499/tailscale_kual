@@ -5,9 +5,15 @@ TMP_DIR=/tmp/ts_update
 LOG=$INSTALL_DIR/update_log.txt
 ARCH=arm
 
-echo "[$(date)] Starting update check..." > "$LOG"
+# Helper: print a message both to the screen (stdout) and to the log file
+log() {
+    echo "$1"
+    echo "$1" >> "$LOG"
+}
 
-# Record currently installed version
+echo "[$(date)] Starting install/update..." > "$LOG"
+
+# Determine whether this is a fresh install or an upgrade
 if [ -f "$INSTALL_DIR/tailscale" ]; then
     CURRENT=$("$INSTALL_DIR/tailscale" version 2>/dev/null | head -1)
 else
@@ -16,28 +22,36 @@ fi
 echo "Installed version : $CURRENT" >> "$LOG"
 
 # Resolve the latest release tag from the GitHub API
+log "Checking latest Tailscale version..."
 LATEST=$(wget -qO- "https://api.github.com/repos/tailscale/tailscale/releases/latest" 2>>"$LOG" \
     | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
 
 if [ -z "$LATEST" ]; then
-    echo "Could not determine latest version. Check network connectivity." >> "$LOG"
+    log "ERROR: Could not determine latest version. Check Wi-Fi connectivity."
     exit 1
 fi
 echo "Latest version    : $LATEST" >> "$LOG"
 
 if [ "$CURRENT" = "$LATEST" ]; then
-    echo "Already up to date." >> "$LOG"
+    log "Already up to date (v$LATEST). Nothing to do."
     exit 0
+fi
+
+if [ "$CURRENT" = "none" ]; then
+    log "No binaries found. Installing v$LATEST..."
+else
+    log "Updating $CURRENT -> $LATEST..."
 fi
 
 # Download the tarball
 mkdir -p "$TMP_DIR"
 URL="https://pkgs.tailscale.com/stable/tailscale_${LATEST}_${ARCH}.tgz"
 echo "Downloading $URL..." >> "$LOG"
+log "Downloading tailscale v$LATEST (~31 MB). Please wait..."
 wget -qO "$TMP_DIR/ts.tgz" "$URL" 2>>"$LOG"
 
 if [ $? -ne 0 ] || [ ! -s "$TMP_DIR/ts.tgz" ]; then
-    echo "Download failed." >> "$LOG"
+    log "ERROR: Download failed. Check Wi-Fi connectivity and try again."
     rm -rf "$TMP_DIR"
     exit 1
 fi
@@ -47,18 +61,32 @@ tar -xzf "$TMP_DIR/ts.tgz" -C "$TMP_DIR" 2>>"$LOG"
 EXTRACTED=$(find "$TMP_DIR" -maxdepth 1 -mindepth 1 -type d | head -1)
 
 if [ -z "$EXTRACTED" ]; then
-    echo "Extraction failed." >> "$LOG"
+    log "ERROR: Extraction failed."
     rm -rf "$TMP_DIR"
     exit 1
 fi
 
-# Back up existing binaries before replacing
-[ -f "$INSTALL_DIR/tailscale" ]  && cp "$INSTALL_DIR/tailscale"  "$INSTALL_DIR/tailscale.bak"
-[ -f "$INSTALL_DIR/tailscaled" ] && cp "$INSTALL_DIR/tailscaled" "$INSTALL_DIR/tailscaled.bak"
+# Back up existing binaries before replacing (only when upgrading)
+if [ "$CURRENT" != "none" ]; then
+    [ -f "$INSTALL_DIR/tailscale" ]  && cp "$INSTALL_DIR/tailscale"  "$INSTALL_DIR/tailscale.bak"
+    [ -f "$INSTALL_DIR/tailscaled" ] && cp "$INSTALL_DIR/tailscaled" "$INSTALL_DIR/tailscaled.bak"
+    echo "Backed up existing binaries as *.bak" >> "$LOG"
+fi
 
-# Install
+# Install binaries
 cp "$EXTRACTED/tailscale"  "$INSTALL_DIR/tailscale"  && chmod +x "$INSTALL_DIR/tailscale"
 cp "$EXTRACTED/tailscaled" "$INSTALL_DIR/tailscaled" && chmod +x "$INSTALL_DIR/tailscaled"
 
 rm -rf "$TMP_DIR"
-echo "Updated $CURRENT -> $LATEST." >> "$LOG"
+
+# Create an empty auth.key placeholder on a fresh install
+if [ ! -f "$INSTALL_DIR/auth.key" ]; then
+    touch "$INSTALL_DIR/auth.key"
+    echo "Created empty auth.key placeholder." >> "$LOG"
+fi
+
+if [ "$CURRENT" = "none" ]; then
+    log "Install complete: v$LATEST. Fill in auth.key before starting Tailscale."
+else
+    log "Update complete: v$LATEST successfully installed."
+fi

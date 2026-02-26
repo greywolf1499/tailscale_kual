@@ -28,7 +28,7 @@ Having tested out on this device only, [YMMV](https://dictionary.cambridge.org/d
 
 3. Place the **tailscale** (not the `tailscale_kual`) folder into the `extensions` folder on your kindle.
 
-4. In the KUAL menu, tap **Install Binaries**. This will download the latest `tailscale` and `tailscaled` ARM binaries directly onto the Kindle over Wi-Fi. Alternatively, download them manually for the `arm` architecture from [here](https://pkgs.tailscale.com/stable/#static) and place them in `extensions/tailscale/bin/` yourself.
+4. In the KUAL menu, tap **Install / Update Binaries**. This will download the latest `tailscale` and `tailscaled` ARM binaries directly onto the Kindle over Wi-Fi. Alternatively, download them manually for the `arm` architecture from [here](https://pkgs.tailscale.com/stable/#static) and place them in `extensions/tailscale/bin/` yourself.
 
 5. In the KUAL menu, open the **Start Tailscaled** submenu and pick the mode that suits your device (see [Tailscaled Modes](#tailscaled-modes) below). Wait about 10 seconds, then run **Start Tailscale**.
 
@@ -68,23 +68,14 @@ Runs `tailscaled` without the userspace-networking flag, relying on the kernel's
 
 ## Installing and Updating Tailscale Binaries
 
-The KUAL menu has two entries for managing the binaries:
+The KUAL menu has a single **Install / Update Binaries** entry that handles both cases automatically:
 
-**Install Binaries** — use this on a fresh setup (no binaries present yet):
-1. Fetches the latest release tag from the GitHub API.
-2. Downloads `tailscale_{version}_arm.tgz` from `pkgs.tailscale.com` and extracts it.
-3. Installs `tailscale` and `tailscaled` into `extensions/tailscale/bin/`.
-4. Creates an empty `auth.key` placeholder if one is not already there.
+- **Fresh install** (no binaries present): fetches the latest release from the GitHub API, downloads `tailscale_{version}_arm.tgz` from `pkgs.tailscale.com`, installs `tailscale` and `tailscaled` into `extensions/tailscale/bin/`, and creates an empty `auth.key` placeholder if one is not already there.
+- **Already installed**: reads the current version, skips the download if already up to date, otherwise backs up the existing binaries as `*.bak` and installs the newer version.
 
-**Update Binaries** — use this when binaries are already installed:
-1. Queries the GitHub API for the latest Tailscale release.
-2. Skips the download if the installed version is already current.
-3. Downloads and extracts the latest tarball.
-4. Backs up the existing binaries as `*.bak` before replacing them.
+Status messages are shown on-screen as the script runs. Full progress and any errors are also written to `update_log.txt` in `extensions/tailscale/bin/`. The Kindle must have an active Wi-Fi connection.
 
-Progress and any errors are written to `install_log.txt` / `update_log.txt` in `extensions/tailscale/bin/`. The Kindle must have an active Wi-Fi connection.
-
-**Note:** Stop `tailscale` and `tailscaled` via the KUAL menu first before running either, then start them again afterwards.
+**Note:** Stop `tailscale` and `tailscaled` via the KUAL menu first before running this, then start them again afterwards.
 
 ## Note:
 
