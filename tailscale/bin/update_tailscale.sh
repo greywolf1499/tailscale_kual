@@ -66,10 +66,16 @@ fi
 
 # Extract
 tar -xzf "$TMP_DIR/ts.tgz" -C "$TMP_DIR" 2>>"$LOG"
-EXTRACTED=$(find "$TMP_DIR" -maxdepth 1 -mindepth 1 -type d | head -1)
 
-if [ -z "$EXTRACTED" ]; then
-    log "ERROR: Extraction failed."
+# Locate the binaries by name anywhere under the tmp dir (robust against
+# tarballs that use a different top-level directory name or a flat layout)
+TS_BIN=$(find "$TMP_DIR" -type f -name "tailscale"  | head -1)
+TSD_BIN=$(find "$TMP_DIR" -type f -name "tailscaled" | head -1)
+
+if [ -z "$TS_BIN" ] || [ -z "$TSD_BIN" ]; then
+    log "ERROR: Could not find binaries in tarball."
+    echo "tailscale  : ${TS_BIN:-not found}" >> "$LOG"
+    echo "tailscaled : ${TSD_BIN:-not found}" >> "$LOG"
     rm -rf "$TMP_DIR"
     exit 1
 fi
@@ -82,8 +88,8 @@ if [ "$CURRENT" != "none" ]; then
 fi
 
 # Install binaries
-cp "$EXTRACTED/tailscale"  "$INSTALL_DIR/tailscale"  && chmod +x "$INSTALL_DIR/tailscale"
-cp "$EXTRACTED/tailscaled" "$INSTALL_DIR/tailscaled" && chmod +x "$INSTALL_DIR/tailscaled"
+cp "$TS_BIN"  "$INSTALL_DIR/tailscale"  && chmod +x "$INSTALL_DIR/tailscale"  || { log "ERROR: Failed to install tailscale.";  rm -rf "$TMP_DIR"; exit 1; }
+cp "$TSD_BIN" "$INSTALL_DIR/tailscaled" && chmod +x "$INSTALL_DIR/tailscaled" || { log "ERROR: Failed to install tailscaled."; rm -rf "$TMP_DIR"; exit 1; }
 
 rm -rf "$TMP_DIR"
 
