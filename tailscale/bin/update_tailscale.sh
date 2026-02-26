@@ -27,9 +27,10 @@ fi
 echo "Installed version : $CURRENT" >> "$LOG"
 
 # Resolve the latest release tag from the GitHub API
-# A User-Agent header is required - GitHub resets connections from clients that omit it.
+# curl is used instead of wget: BusyBox wget on this Kindle cannot complete
+# TLS handshakes with github.com or pkgs.tailscale.com.
 log "Checking latest Tailscale version..."
-LATEST=$(wget -qO- --user-agent="tailscale-kual-updater/1.0" \
+LATEST=$(curl -sf --user-agent "tailscale-kual-updater/1.0" \
     "https://api.github.com/repos/tailscale/tailscale/releases/latest" 2>>"$LOG" \
     | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
 
@@ -55,7 +56,7 @@ mkdir -p "$TMP_DIR"
 URL="https://pkgs.tailscale.com/stable/tailscale_${LATEST}_${ARCH}.tgz"
 echo "Downloading $URL..." >> "$LOG"
 log "Downloading tailscale v$LATEST (~31 MB). Please wait..."
-wget -qO "$TMP_DIR/ts.tgz" "$URL" 2>>"$LOG"
+curl -sL --user-agent "tailscale-kual-updater/1.0" -o "$TMP_DIR/ts.tgz" "$URL" 2>>"$LOG"
 
 if [ $? -ne 0 ] || [ ! -s "$TMP_DIR/ts.tgz" ]; then
     log "ERROR: Download failed. Check Wi-Fi connectivity and try again."
