@@ -5,10 +5,15 @@ TMP_DIR=/tmp/ts_update
 LOG=$INSTALL_DIR/update_log.txt
 ARCH=arm
 
-# Helper: print a message both to the screen (stdout) and to the log file
+# Print a message to the Kindle screen via eips and append to the log file.
+# Text is padded to 50 chars so each call fully overwrites the previous line.
+eips_print() {
+    eips 0 22 "$(printf '%-50s' "$1")" 2>/dev/null
+}
+
 log() {
-    echo "$1"
     echo "$1" >> "$LOG"
+    eips_print "$1"
 }
 
 echo "[$(date)] Starting install/update..." > "$LOG"
