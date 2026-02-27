@@ -30,7 +30,7 @@ Having tested out on this device only, [YMMV](https://dictionary.cambridge.org/d
 
 4. In the KUAL menu, tap **Install / Update Binaries**. This will download the latest `tailscale` and `tailscaled` ARM binaries directly onto the Kindle over Wi-Fi. Alternatively, download them manually for the `arm` architecture from [here](https://pkgs.tailscale.com/stable/#static) and place them in `extensions/tailscale/bin/` yourself.
 
-5. In the KUAL menu, open the **Start Tailscaled** submenu and pick the mode that suits your device (see [Tailscaled Modes](#tailscaled-modes) below). Wait about 10 seconds, then run **Start Tailscale**.
+5. In the KUAL menu, open the **Start Tailscaled** submenu and pick the mode that suits your device (see [Tailscaled Modes](#tailscaled-modes) below). Status messages will appear on the Kindle screen as the daemon starts. Wait a few seconds, then run **Start Tailscale**. You can switch modes at any time without manually stopping tailscaled first — the start scripts handle that automatically.
 
 6. After this, tailscale should add the kindle to your [Machines](https://login.tailscale.com/admin/machines) page on tailscale [admin console](https://login.tailscale.com/welcome).
 
@@ -38,7 +38,7 @@ Having tested out on this device only, [YMMV](https://dictionary.cambridge.org/d
 
 8. **Recommended:** In the [Tailscale admin console](https://login.tailscale.com/admin/machines), find your Kindle, click the three-dot menu, and select **Disable key expiry**. After this one-time step, the Kindle will reconnect to your tailnet on every reboot without needing the `auth.key` file again. The auth key is only needed for the very first registration.
 
-9. In case you want to restart fresh, Remove Kindle from tailscale admin console, Stop `tailscale` and `tailscaled` in KUAL, and delete the logs and new files created in `/extensions/tailscale/bin`. This will reset the state of tailscale on your kindle.
+9. In case you want to restart fresh, remove the Kindle from the Tailscale admin console, stop `tailscale` and `tailscaled` via KUAL, then delete the state and log files created in `/mnt/us/extensions/tailscale/bin/`: `tailscaled.state`, `tailscale_start_log.txt`, `tailscaled_start_log.txt`, `tailscaled_proxy_start_log.txt`, `tailscaled_tun_start_log.txt`, `tailscale_stop_log.txt`, `tailscaled_stop_log.txt`, and `update_log.txt`. This will fully reset Tailscale's registration on your Kindle.
 
 10. Note: Make sure the kindle screen is on, else the kindle sleeps the wifi. You can also not connect to kindle via ssh when it is connected to PC using the cable.
 
@@ -54,11 +54,13 @@ Runs `tailscaled` with `-tun userspace-networking`. This is what the extension h
 
 Runs `tailscaled` in userspace-networking mode but also starts a SOCKS5 and HTTP proxy listener on `localhost:1055`. Outgoing traffic from apps that respect a proxy setting is routed through Tailscale. This is the recommended option if you want to use Tailscale URLs inside **KOReader** (OPDS, the CWA plugin, etc.).
 
+The proxy listen address defaults to `localhost:1055`. To use a different address or port, write it (e.g. `localhost:1080`) into the `proxy.address` file in `extensions/tailscale/bin/` before starting.
+
 After starting tailscaled in this mode and bringing tailscale up, configure KOReader's network proxy:
 
 - Open KOReader → **Settings** → **Network** → **Proxy Settings**
 - Set type to **SOCKS5** (or HTTP)
-- Host: `localhost`, Port: `1055`
+- Host: `localhost`, Port: `1055` (or whatever you set in `proxy.address`)
 
 Once set, any request KOReader makes will go out through your tailnet.
 
@@ -74,6 +76,8 @@ The KUAL menu has a single **Install / Update Binaries** entry that handles both
 - **Already installed**: reads the current version, skips the download if already up to date, otherwise backs up the existing binaries as `*.bak` and installs the newer version.
 
 Status messages are shown on-screen as the script runs. Full progress and any errors are also written to `update_log.txt` in `extensions/tailscale/bin/`. The Kindle must have an active Wi-Fi connection.
+
+**Tip:** All KUAL actions (start, stop, update) display live status on the Kindle screen and write a corresponding log file in `extensions/tailscale/bin/` — check those logs first when troubleshooting.
 
 **Note:** Stop `tailscale` and `tailscaled` via the KUAL menu first before running this, then start them again afterwards.
 
