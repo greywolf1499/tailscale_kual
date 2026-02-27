@@ -1,2 +1,6 @@
 tailscale/bin/tailscale
 tailscale/bin/tailscaled
+tailscale/bin/*.txt
+tailscale/bin/*.bak
+tailscale/bin/tailscaled.state
+tailscale/bin/autostart.enabled
