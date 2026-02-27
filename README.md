@@ -79,7 +79,7 @@ Status messages are shown on-screen as the script runs. Full progress and any er
 
 **Tip:** All KUAL actions (start, stop, update) display live status on the Kindle screen and write a corresponding log file in `extensions/tailscale/bin/` — check those logs first when troubleshooting.
 
-**Note:** Stop `tailscale` and `tailscaled` via the KUAL menu first before running this, then start them again afterwards.
+**Note:** If the daemon is already running during an upgrade, the script will automatically stop it, install the new binaries, and restart it in the same mode — no manual intervention needed.
 
 ## Autostart on Boot
 
