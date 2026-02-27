@@ -17,7 +17,7 @@ if [ ! -s "$MODE_FILE" ]; then
     echo "standard" > "$MODE_FILE"
 fi
 
-MODE=$(cat "$MODE_FILE" | tr -d '[:space:]')
+MODE=$(tr -d '[:space:]' < "$MODE_FILE")
 
 # Install upstart job if not already present
 if [ ! -f "$UPSTART_DEST" ]; then

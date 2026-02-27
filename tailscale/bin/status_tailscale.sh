@@ -17,7 +17,7 @@ eips_line() {
 
 # Clear display area (rows 17-22)
 ROW=17
-while [ $ROW -le 22 ]; do
+while [ "$ROW" -le 22 ]; do
     eips 0 "$ROW" "$(printf '%-50s' '')" 2>/dev/null
     ROW=$((ROW + 1))
 done
@@ -58,7 +58,7 @@ fi
 # 3. Autostart mode
 MODE="standard"
 if [ -s "$MODE_FILE" ]; then
-    MODE=$(cat "$MODE_FILE" | tr -d '[:space:]')
+    MODE=$(tr -d '[:space:]' < "$MODE_FILE")
 fi
 eips_line 20 "Autostart mode: $MODE"
 

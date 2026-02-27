@@ -14,7 +14,7 @@ log() {
 # Read mode from config (default: standard)
 MODE=standard
 if [ -s "$MODE_FILE" ]; then
-    MODE=$(cat "$MODE_FILE" | tr -d '[:space:]')
+    MODE=$(tr -d '[:space:]' < "$MODE_FILE")
 fi
 
 log "=== Autostart begin (mode: $MODE) ==="
@@ -33,7 +33,7 @@ fi
 TIMEOUT=120
 ELAPSED=0
 log "Waiting for network..."
-while [ $ELAPSED -lt $TIMEOUT ]; do
+while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
     IP=$(ip addr show wlan0 2>/dev/null | grep 'inet ' | awk '{print $2}')
     if [ -n "$IP" ]; then
         log "Network ready: $IP"
@@ -43,7 +43,7 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     ELAPSED=$((ELAPSED + 5))
 done
 
-if [ $ELAPSED -ge $TIMEOUT ]; then
+if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
     log "Network not available after ${TIMEOUT}s, aborting"
     exit 1
 fi
@@ -58,7 +58,7 @@ case "$MODE" in
     proxy)
         PROXY_ADDR=localhost:1055
         if [ -s "$PROXY_ADDR_FILE" ]; then
-            PROXY_ADDR=$(cat "$PROXY_ADDR_FILE" | tr -d '[:space:]')
+            PROXY_ADDR=$(tr -d '[:space:]' < "$PROXY_ADDR_FILE")
         fi
         log "Starting tailscaled (proxy: $PROXY_ADDR)"
         nohup "$BIN/tailscaled" --statedir="$BIN/" -tun userspace-networking \
